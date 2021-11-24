@@ -7,6 +7,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <ftw.h>
 
 #define READ_DATA_SIZE	1024
 #define MD5_SIZE		16
@@ -19,6 +20,8 @@ int Compute_file_md5(const char *file_path, char *md5_str);
 /************** main test **************/
 int main(int argc, char *argv[])
 {
+    // TODO: https://github.com/1024sparrow/linux-programming-by-example/blob/master/book/ch08/ch08-nftw.c
+
 	int ret;
 	const char *file_path = "md5.c";
 	char md5_str[MD5_STR_LEN + 1];
