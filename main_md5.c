@@ -207,41 +207,16 @@ int _main(int argc, char *argv[])
 
 int main(int argc, char **argv)
 {
-	int i, c, nfds;
-	int errors = 0;
+	int nfds;
 	int flags = FTW_PHYS;
-	char start[PATH_MAX], finish[PATH_MAX];
-
-	while ((c = getopt(argc, argv, "c")) != -1) {
-		switch (c) {
-		case 'c':
-			flags |= FTW_CHDIR;
-			break;
-		default:
-            puts("$&(&^&%$^%$^&^%$^&%*&");
-			break;
-		}
-	}
-
-	//if (optind == argc)
-	//	usage(argv[0]);
+	char start[PATH_MAX];
 
 	getcwd(start, sizeof start);
+	nfds = getdtablesize() - SPARE_FDS;	// leave some spare descriptors
+    if (nftw(".", process, nfds, flags) != 0) {
+        fprintf(stderr, "failed\n");
+        return 1;
+    }
 
-	nfds = getdtablesize() - SPARE_FDS;	/* leave some spare descriptors */
-	for (i = optind; i < argc; i++) {
-		if (nftw(argv[i], process, nfds, flags) != 0) {
-			fprintf(stderr, "%s: %s: stopped early\n",
-				argv[0], argv[i]);
-			errors++;
-		}
-	}
-
-	if ((flags & FTW_CHDIR) != 0) {
-		getcwd(finish, sizeof finish);
-		printf("Starting dir: %s\n", start);
-		printf("Finishing dir: %s\n", finish);
-	}
-
-	return (errors != 0);
+	return 0;
 }
