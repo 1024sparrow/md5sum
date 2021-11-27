@@ -116,6 +116,8 @@ int Compute_file_md5(const char *file_path, char *md5_str)
 	return 0;
 }
 
+static char md5_str[MD5_STR_LEN + 1];
+
 int process(const char *file, const struct stat *sb, int flag, struct FTW *s)
 {
 	//const char *name = file + s->base;
@@ -124,7 +126,11 @@ int process(const char *file, const struct stat *sb, int flag, struct FTW *s)
     switch (flag)
     {
     case FTW_F:
-        printf("%s: %s\n", name, "123123123");
+        if (Compute_file_md5(file, md5_str))
+        {
+            return 1;
+        }
+        printf("%s: %s\n", name, md5_str);
         break;
     case FTW_D:
         printf("directory %s\n", name);
