@@ -1,7 +1,7 @@
 #include "md5.h"
 
-#define _XOPEN_SOURCE 1			/* Required under GLIBC for nftw() */
-#define _XOPEN_SOURCE_EXTENDED 1	/* Same */
+#define _XOPEN_SOURCE 500 // Required under GLIBC for nftw()
+#define _XOPEN_SOURCE_EXTENDED 500 // Same
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -13,13 +13,19 @@
 
 #include <errno.h>
 #include <ftw.h>
-#include <limits.h>     /* for PATH_MAX */
+#include <limits.h> // for PATH_MAX
 
-#define READ_DATA_SIZE	1024
-#define MD5_SIZE		16
-#define MD5_STR_LEN		(MD5_SIZE * 2)
+#define READ_DATA_SIZE 1024
+#define MD5_SIZE 16
+#define MD5_STR_LEN (MD5_SIZE * 2)
+
+#define WRITE_DATA_BUFFER_SIZE 1024
 
 #define SPARE_FDS 5	/* fds for use by other functions, see text */
+
+static char md5_str[MD5_STR_LEN + 1];
+static int fdMd5Detalized;
+static unsigned char writeBuffer[WRITE_DATA_BUFFER_SIZE]; // limit for row: 1024 symbols
 
 // function declare
 int Compute_string_md5(unsigned char *dest_str, unsigned int dest_len, char *md5_str);
@@ -48,7 +54,6 @@ int Compute_string_md5(unsigned char *dest_str, unsigned int dest_len, char *md5
 	// convert md5 value to md5 string
 	for(i = 0; i < MD5_SIZE; i++)
 	{
-		//snprintf(md5_str + i*2, 2+1, "%02x", md5_value[i]); // C99-specific
 		sprintf(md5_str + i*2, "%02x", md5_value[i]);
 	}
 
@@ -81,7 +86,6 @@ int Compute_file_md5(const char *file_path, char *md5_str)
 		return -1;
 	}
 
-	// init md5
 	MD5Init(&md5);
 
 	while (1)
@@ -109,14 +113,11 @@ int Compute_file_md5(const char *file_path, char *md5_str)
 	// convert md5 value to md5 string
 	for(i = 0; i < MD5_SIZE; i++)
 	{
-		//snprintf(md5_str + i*2, 2+1, "%02x", md5_value[i]); // C99-specific
 		sprintf(md5_str + i*2, "%02x", md5_value[i]);
 	}
 
 	return 0;
 }
-
-static char md5_str[MD5_STR_LEN + 1];
 
 int process(const char *file, const struct stat *sb, int flag, struct FTW *s)
 {
@@ -126,14 +127,23 @@ int process(const char *file, const struct stat *sb, int flag, struct FTW *s)
     switch (flag)
     {
     case FTW_F:
+        //printf("---- %s\n", name);
         if (Compute_file_md5(file, md5_str))
         {
             return 1;
         }
-        printf("%s: %s\n", name, md5_str);
+        //printf("%s: %s\n", name, md5_str);
+        snprintf(writeBuffer, WRITE_DATA_BUFFER_SIZE, "%s: %s\n", name, md5_str);
+        write(fdMd5Detalized, writeBuffer, strlen(writeBuffer));
         break;
     case FTW_D:
-        printf("directory %s\n", name);
+        //printf("directory %s\n", name);
+        snprintf(writeBuffer, WRITE_DATA_BUFFER_SIZE, "directory %s\n", name);
+        if (write(fdMd5Detalized, writeBuffer, strlen(writeBuffer)) == -1)
+        {
+            perror("can not write md5 report (detalized)");
+            return 1;
+        }
         break;
     default:
         printf("oops... Error happened...\n");
@@ -143,7 +153,7 @@ int process(const char *file, const struct stat *sb, int flag, struct FTW *s)
     return 0;
 }
 
-int _process(const char *file, const struct stat *sb, int flag, struct FTW *s)
+/*int _process(const char *file, const struct stat *sb, int flag, struct FTW *s)
 {
 	int retval = 0;
 	const char *name = file + s->base;
@@ -178,9 +188,9 @@ int _process(const char *file, const struct stat *sb, int flag, struct FTW *s)
 	}
 
 	return retval;
-}
+}*/
 
-int _main(int argc, char *argv[])
+/*int _main(int argc, char *argv[])
 {
     // TODO: https://github.com/1024sparrow/linux-programming-by-example/blob/master/book/ch08/ch08-nftw.c
 
@@ -203,13 +213,27 @@ int _main(int argc, char *argv[])
 	printf("%s\n", md5_str);
 
 	return 0;
-}
+}*/
 
 int main(int argc, char **argv)
 {
 	int nfds;
 	int flags = FTW_PHYS;
 	char start[PATH_MAX];
+    const char *md5sumDetalizedPath = "md5sum.detalized.txt";
+    const char *md5sumPath = "md5sum.txt";
+
+    creat(
+        md5sumDetalizedPath,
+        S_IRUSR | S_IWUSR |
+            S_IRGRP | S_IWGRP |
+            S_IROTH | S_IWOTH
+    );
+    if ((fdMd5Detalized = open(md5sumDetalizedPath, O_WRONLY | O_TRUNC)) < 0)
+    {
+        perror("can not create detalized report");
+        return 1;
+    }
 
 	getcwd(start, sizeof start);
 	nfds = getdtablesize() - SPARE_FDS;	// leave some spare descriptors
@@ -217,6 +241,30 @@ int main(int argc, char **argv)
         fprintf(stderr, "failed\n");
         return 1;
     }
+    close(fdMd5Detalized);
+
+    creat(
+        md5sumPath,
+        S_IRUSR | S_IWUSR |
+            S_IRGRP | S_IWGRP |
+            S_IROTH | S_IWOTH
+    );
+    if ((fdMd5Detalized = open(md5sumPath, O_WRONLY | O_TRUNC)) == -1)
+    {
+        perror("can not create sumary md5sum report");
+        return 1;
+    }
+    if (Compute_file_md5(md5sumDetalizedPath, md5_str))
+    {
+        return 1;
+    }
+    snprintf(writeBuffer, WRITE_DATA_BUFFER_SIZE, "summary md5:  %s\n", md5_str);
+    if (write(fdMd5Detalized, writeBuffer, strlen(writeBuffer)) == -1)
+    {
+        perror("can not write sumary md5");
+        return 1;
+    }
+    close(fdMd5Detalized);
 
 	return 0;
 }
