@@ -116,13 +116,28 @@ int Compute_file_md5(const char *file_path, char *md5_str)
 	return 0;
 }
 
-/*int process(const char *file, const struct stat *sb, int flag, struct FTW *s)
-{
-	printf("%*s", s->level * 4, "");	// indent over
-    return 0;
-}*/
-
 int process(const char *file, const struct stat *sb, int flag, struct FTW *s)
+{
+	//const char *name = file + s->base;
+	const char *name = file;
+
+    switch (flag)
+    {
+    case FTW_F:
+        printf("%s: %s\n", name, "123123123");
+        break;
+    case FTW_D:
+        printf("directory %s\n", name);
+        break;
+    default:
+        printf("oops... Error happened...\n");
+        return 1;
+    }
+
+    return 0;
+}
+
+int _process(const char *file, const struct stat *sb, int flag, struct FTW *s)
 {
 	int retval = 0;
 	const char *name = file + s->base;
@@ -159,8 +174,7 @@ int process(const char *file, const struct stat *sb, int flag, struct FTW *s)
 	return retval;
 }
 
-/************** main test **************/
-int main(int argc, char *argv[])
+int _main(int argc, char *argv[])
 {
     // TODO: https://github.com/1024sparrow/linux-programming-by-example/blob/master/book/ch08/ch08-nftw.c
 
@@ -183,4 +197,45 @@ int main(int argc, char *argv[])
 	printf("%s\n", md5_str);
 
 	return 0;
+}
+
+int main(int argc, char **argv)
+{
+	int i, c, nfds;
+	int errors = 0;
+	int flags = FTW_PHYS;
+	char start[PATH_MAX], finish[PATH_MAX];
+
+	while ((c = getopt(argc, argv, "c")) != -1) {
+		switch (c) {
+		case 'c':
+			flags |= FTW_CHDIR;
+			break;
+		default:
+            puts("$&(&^&%$^%$^&^%$^&%*&");
+			break;
+		}
+	}
+
+	//if (optind == argc)
+	//	usage(argv[0]);
+
+	getcwd(start, sizeof start);
+
+	nfds = getdtablesize() - SPARE_FDS;	/* leave some spare descriptors */
+	for (i = optind; i < argc; i++) {
+		if (nftw(argv[i], process, nfds, flags) != 0) {
+			fprintf(stderr, "%s: %s: stopped early\n",
+				argv[0], argv[i]);
+			errors++;
+		}
+	}
+
+	if ((flags & FTW_CHDIR) != 0) {
+		getcwd(finish, sizeof finish);
+		printf("Starting dir: %s\n", start);
+		printf("Finishing dir: %s\n", finish);
+	}
+
+	return (errors != 0);
 }
