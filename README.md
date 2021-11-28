@@ -11,4 +11,7 @@
 ## Building
 
 Tested on Ubuntu-20.04 LTS and Ubuntu-18.04 LTS. Others not tryed (and not adapted).
-Just run ```make```: it builds both linux and windows binaries. Used compilers: *gcc* and *x86_64-w64-mingw32-gcc* (Ubuntu: ```sudo apt install -y gcc-mingw-w64```).
+
+Just run ```make```: it builds **both linux and windows binaries**.
+
+Used compilers: *gcc* and *x86_64-w64-mingw32-gcc* (Ubuntu: ```sudo apt install -y gcc-mingw-w64```).
