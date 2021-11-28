@@ -23,4 +23,4 @@ Used compilers: *gcc* and *x86_64-w64-mingw32-gcc* (Ubuntu: ```sudo apt install 
 
 ## License
 
-[https://github.com/1024sparrow/md5sum/LICENSE](Apache-2.0 License)
+[Apache-2.0 License](https://github.com/1024sparrow/md5sum/LICENSE)
