@@ -11,7 +11,7 @@ This program is not md5sum from coreutils: that utility not support hashing whol
 
 1. Ignore md5sum.txt and md5sum.detalized.txt (oops...). Critical error.
 2. Add filter function to prevent calculating log-files and version control internals.
-3. Add support of "--help".
+3. Add support for "--help".
 
 ## Building
 
