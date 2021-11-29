@@ -28,8 +28,25 @@ static int fdMd5Detalized;
 static unsigned char writeBuffer[WRITE_DATA_BUFFER_SIZE]; // limit for row: 1024 symbols
 
 // function declare
-int Compute_string_md5(unsigned char *dest_str, unsigned int dest_len, char *md5_str);
-int Compute_file_md5(const char *file_path, char *md5_str);
+int
+validateAnalizingPath(
+    const char *path,
+    int baseNameIndex,
+    int fileType // FTW_F, FTW_D &etc. declared in <ftw.h>
+);
+
+int
+Compute_string_md5(
+    unsigned char *dest_str,
+    unsigned int dest_len,
+    char *md5_str
+);
+
+int
+Compute_file_md5(
+    const char *file_path,
+    char *md5_str
+);
 
 #ifdef WIN32
 static int dtablesize;
@@ -158,18 +175,23 @@ int process(const char *file, const struct stat *sb, int flag, struct FTW *s)
 {
 	//const char *name = file + s->base;
 	const char *name = file;
+    printf("111111 %s\n", name);
 
     switch (flag)
     {
     case FTW_F:
-        //printf("---- %s\n", name);
-        if (Compute_file_md5(file, md5_str))
-        {
-            return 1;
+        if (!validateAnalizingPath(file, s->base, flag))
+            ;
+        else {
+            //printf("---- %s\n", name);
+            if (Compute_file_md5(file, md5_str))
+            {
+                return 1;
+            }
+            //printf("%s: %s\n", name, md5_str);
+            snprintf(writeBuffer, WRITE_DATA_BUFFER_SIZE, "%s: %s\n", name, md5_str);
+            write(fdMd5Detalized, writeBuffer, strlen(writeBuffer));
         }
-        //printf("%s: %s\n", name, md5_str);
-        snprintf(writeBuffer, WRITE_DATA_BUFFER_SIZE, "%s: %s\n", name, md5_str);
-        write(fdMd5Detalized, writeBuffer, strlen(writeBuffer));
         break;
     case FTW_D:
         //printf("directory %s\n", name);
