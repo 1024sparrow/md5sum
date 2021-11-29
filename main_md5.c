@@ -174,14 +174,17 @@ int Compute_file_md5(const char *file_path, char *md5_str)
 int process(const char *file, const struct stat *sb, int flag, struct FTW *s)
 {
 	//const char *name = file + s->base;
-	const char *name = file;
-    printf("111111 %s\n", name);
+	const char *name = file + 2; // removed first two symbols: "./"
+    const char * md5sumFilesPrefix = "./md5sum.";
 
     switch (flag)
     {
     case FTW_F:
         if (!validateAnalizingPath(file, s->base, flag))
             ;
+        else if (!strncmp(file, md5sumFilesPrefix, strlen(md5sumFilesPrefix))){
+            ;
+        }
         else {
             //printf("---- %s\n", name);
             if (Compute_file_md5(file, md5_str))
@@ -195,11 +198,17 @@ int process(const char *file, const struct stat *sb, int flag, struct FTW *s)
         break;
     case FTW_D:
         //printf("directory %s\n", name);
-        snprintf(writeBuffer, WRITE_DATA_BUFFER_SIZE, "directory %s\n", name);
-        if (write(fdMd5Detalized, writeBuffer, strlen(writeBuffer)) == -1)
-        {
-            perror("can not write md5 report (detalized)");
-            return 1;
+        if (!validateAnalizingPath(file, s->base, flag))
+            ;
+        else if (!strcmp(file, "."))
+            ;
+        else {
+            snprintf(writeBuffer, WRITE_DATA_BUFFER_SIZE, "directory %s\n", name);
+            if (write(fdMd5Detalized, writeBuffer, strlen(writeBuffer)) == -1)
+            {
+                perror("can not write md5 report (detalized)");
+                return 1;
+            }
         }
         break;
     default:
