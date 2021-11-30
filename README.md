@@ -7,6 +7,8 @@ It is console application that calculates md5 hashsum for whole current director
 
 This program is not md5sum from coreutils: that utility not support hashing whole directories recursively. Moreover this program can be compiled simply for portable windows md5sum-win64.exe.
 
+Change history is [here](changelog.md).
+
 ## TODO
 
 1. Ignore md5sum.txt and md5sum.detalized.txt (oops...). Critical error.
