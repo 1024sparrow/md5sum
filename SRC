@@ -1,0 +1,32 @@
+/*struct descr {
+    enum {
+        FILETYPE_ANY,
+        FILETYPE_FILE,
+        FILETYPE_DIR
+    } fileType;
+    enum {
+        FILTERTYPE_FULLPATH_EQUAL = 1,
+        FILTERTYPE_FULENAME_EQUAL = 2,
+        FILTERTYPE_FULLPATH_STARTS_WITH = 3,
+        FILTERTYPE_FULENAME_STARTS_WITH = 4
+    } filterType;
+    const char * filename;
+} descr [] = {
+    // #include "SRC"
+    {
+        FILETYPE_DIR,
+        FILTERTYPE_FULLPATH_EQUAL,
+        "./Journal"
+    }
+};*/
+
+{
+    FILETYPE_DIR,
+    FILTERTYPE_FULLPATH_EQUAL,
+    "./Journal"
+},
+{
+    FILETYPE_DIR,
+    FILTERTYPE_FULENAME_STARTS_WITH,
+    "20."
+}
