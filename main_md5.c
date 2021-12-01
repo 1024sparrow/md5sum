@@ -332,5 +332,19 @@ int main(int argc, char **argv)
     }
     close(fdMd5Detalized);
 
+#ifdef WIN32
+    printf(
+        "Hash-sum for current directory analizer\n"
+        "=======================================\n"
+        //"Special edition for MP ASDC\n"
+        //"\n"
+        "Summary hash-sum: %s\n"
+        "\n"
+        "Press <ENTER> to exit...",
+        md5_str
+    );
+    getchar();
+#endif
+
 	return 0;
 }
