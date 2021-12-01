@@ -1,5 +1,6 @@
 #include <ftw.h>
 #include <string.h>
+#include <stdlib.h> // exit()
 
 int
 validateAnalizingPath(
@@ -16,6 +17,7 @@ validateAnalizingPath(
     if (!strcmp(path, md5sumFilesPrefix)){
         return 0;
     }
+    //return 1;//
 
     struct descr {
         enum {
@@ -31,19 +33,47 @@ validateAnalizingPath(
         } filterType;
         const char * filename;
     } descr [] = {
-        /*{
-            FILETYPE_DIR,
+        {
+            FILETYPE_FILE,
             FILTERTYPE_FULLPATH_EQUAL,
-            "./Journal"
-        }*/
+            "./md5sum"
+        },
+        {
+            FILETYPE_FILE,
+            FILTERTYPE_FULLPATH_EQUAL,
+            "./md5sum-win64.exe"
+        },
+        {
+            FILETYPE_FILE,
+            FILTERTYPE_FULLPATH_EQUAL,
+            "./md5sum.detalized.txt"
+        },
+        {
+            FILETYPE_FILE,
+            FILTERTYPE_FULLPATH_EQUAL,
+            "./md5sum.txt"
+        },
         #include "SRC"
     };
     int i;
     struct descr *oDescr;
     for (i = 0, oDescr = &descr ; i < sizeof(descr)/sizeof(struct descr) ; ++i, ++oDescr){
         if (oDescr->fileType != FILETYPE_ANY){
-            puts("NOT IMPLEMENTED. ERROR.");
-            return 0;
+            switch (oDescr->fileType){
+            case FILETYPE_FILE:
+                if (fileType != FTW_F){
+                    continue;
+                }
+                break;
+            case FILETYPE_DIR:
+                if (fileType != FTW_D){
+                    continue;
+                }
+                break;
+            default:
+                puts("NOT IMPLEMENTED. ERROR.");
+                exit(1);
+            }
         }
         const char *actualName = path;
         if (oDescr->filterType & 2){
@@ -52,11 +82,13 @@ validateAnalizingPath(
 
         if (oDescr->filterType & 1){
             if (!strcmp(actualName, oDescr->filename)){
+                //printf("filtered file: \"%s\"\n", path);//
                 return 0;
             }
         }
         else{
             if (!strncmp(actualName, oDescr->filename, strlen(oDescr->filename))){
+                //printf("filtered file: \"%s\"\n", path);//
                 return 0;
             }
         }

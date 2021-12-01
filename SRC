@@ -1,4 +1,5 @@
-/*struct descr {
+/*
+struct descr {
     enum {
         FILETYPE_ANY,
         FILETYPE_FILE,
@@ -18,7 +19,8 @@
         FILTERTYPE_FULLPATH_EQUAL,
         "./Journal"
     }
-};*/
+};
+====================================*/
 
 {
     FILETYPE_DIR,
@@ -28,5 +30,5 @@
 {
     FILETYPE_DIR,
     FILTERTYPE_FULENAME_STARTS_WITH,
-    "20."
+    "20" // year (it it directory with logs)
 }
