@@ -22,13 +22,3 @@ struct descr {
 };
 ====================================*/
 
-{
-    FILETYPE_DIR,
-    FILTERTYPE_FULLPATH_EQUAL,
-    "./Journal"
-},
-{
-    FILETYPE_DIR,
-    FILTERTYPE_FULENAME_STARTS_WITH,
-    "20" // year (it it directory with logs)
-}
