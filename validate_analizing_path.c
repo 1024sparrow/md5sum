@@ -26,10 +26,10 @@ validateAnalizingPath(
             FILETYPE_DIR
         } fileType;
         enum {
-            FILTERTYPE_FULLPATH_EQUAL = 1,
-            FILTERTYPE_FULENAME_EQUAL = 2,
-            FILTERTYPE_FULLPATH_STARTS_WITH = 3,
-            FILTERTYPE_FULENAME_STARTS_WITH = 4
+            FILTERTYPE_FULLPATH_EQUAL = 0, // 00, <startsWithInsteadOfEqual><nameNotPath>
+            FILTERTYPE_FULENAME_EQUAL = 1, // 01
+            FILTERTYPE_FULLPATH_STARTS_WITH = 2, // 10
+            FILTERTYPE_FULENAME_STARTS_WITH = 3 // 11
         } filterType;
         const char * filename;
     } descr [] = {
@@ -76,18 +76,20 @@ validateAnalizingPath(
             }
         }
         const char *actualName = path;
-        if (oDescr->filterType & 2){
+        if (oDescr->filterType & 1){
             actualName += baseNameIndex;
         }
 
-        if (oDescr->filterType & 1){
-            if (!strcmp(actualName, oDescr->filename)){
+        if (oDescr->filterType & 2){
+			//printf("strncmp(\"%s\", \"%s\", %u) = %i\n", actualName, oDescr->filename, strlen(oDescr->filename),strncmp(actualName, oDescr->filename, strlen(oDescr->filename)));//
+            if (!strncmp(actualName, oDescr->filename, strlen(oDescr->filename))){
                 //printf("filtered file: \"%s\"\n", path);//
                 return 0;
             }
         }
         else{
-            if (!strncmp(actualName, oDescr->filename, strlen(oDescr->filename))){
+			//printf("strcmp(\"%s\", \"%s\") = %i\n", actualName, oDescr->filename,strcmp(actualName, oDescr->filename));//
+            if (!strcmp(actualName, oDescr->filename)){
                 //printf("filtered file: \"%s\"\n", path);//
                 return 0;
             }

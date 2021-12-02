@@ -2,6 +2,7 @@
 
 #define _XOPEN_SOURCE 500 // Required under GLIBC for nftw()
 #define _XOPEN_SOURCE_EXTENDED 500 // Same
+#define _GNU_SOURCE // for FTW_ACTIONRETVAL flag in nftw()
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -181,42 +182,43 @@ int process(const char *file, const struct stat *sb, int flag, struct FTW *s)
     {
     case FTW_F:
         if (!validateAnalizingPath(file, s->base, flag))
-            ;
-        else if (!strncmp(file, md5sumFilesPrefix, strlen(md5sumFilesPrefix))){
-            ;
-        }
-        else {
-            //printf("---- %s\n", name);
-            if (Compute_file_md5(file, md5_str))
-            {
-                return 1;
-            }
-            //printf("%s: %s\n", name, md5_str);
-            snprintf(writeBuffer, WRITE_DATA_BUFFER_SIZE, "%s: %s\n", name, md5_str);
-            write(fdMd5Detalized, writeBuffer, strlen(writeBuffer));
-        }
-        break;
+			;
+		else {
+			//printf("---- %s\n", name);
+			if (Compute_file_md5(file, md5_str))
+			{
+				puts("can not calculate md5");
+				return FTW_STOP;
+			}
+			//printf("%s: %s\n", name, md5_str);
+			snprintf(writeBuffer, WRITE_DATA_BUFFER_SIZE, "%s: %s\n", name, md5_str);
+			write(fdMd5Detalized, writeBuffer, strlen(writeBuffer));
+			return FTW_CONTINUE;
+		}
+		break;
     case FTW_D:
         //printf("directory %s\n", name);
+        if (!strcmp(file, "."))
+			return 0;
         if (!validateAnalizingPath(file, s->base, flag))
-            ;
-        else if (!strcmp(file, "."))
             ;
         else {
             snprintf(writeBuffer, WRITE_DATA_BUFFER_SIZE, "directory %s\n", name);
             if (write(fdMd5Detalized, writeBuffer, strlen(writeBuffer)) == -1)
             {
                 perror("can not write md5 report (detalized)");
-                return 1;
+                return FTW_STOP;
             }
+			return FTW_CONTINUE;
         }
         break;
     default:
         printf("oops... Error happened...\n");
-        return 1;
+        return FTW_STOP;
     }
 
-    return 0;
+	printf("FILTERED: \"%s\"\n", file);//
+    return FTW_SKIP_SUBTREE;
 }
 
 /*int _process(const char *file, const struct stat *sb, int flag, struct FTW *s)
@@ -284,10 +286,15 @@ int process(const char *file, const struct stat *sb, int flag, struct FTW *s)
 int main(int argc, char **argv)
 {
 	int nfds;
-	int flags = FTW_PHYS;
 	char start[PATH_MAX];
     const char *md5sumDetalizedPath = "md5sum.detalized.txt";
     const char *md5sumPath = "md5sum.txt";
+
+	puts(
+		"1024sparrow/md5sum program for calculating md5-sum for current directory\n"
+		"source code: https://github.com/1024sparrow/md5sum\n"
+		"version 1.0"
+	);
 
     creat(
         md5sumDetalizedPath,
@@ -303,7 +310,7 @@ int main(int argc, char **argv)
 
 	getcwd(start, sizeof start);
 	nfds = getdtablesize() - SPARE_FDS;	// leave some spare descriptors
-    if (nftw(".", process, nfds, flags) != 0) {
+    if (nftw(".", process, nfds, FTW_ACTIONRETVAL) != 0) {
         fprintf(stderr, "failed\n");
         return 1;
     }
