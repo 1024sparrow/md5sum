@@ -343,8 +343,9 @@ int main(int argc, char **argv)
     printf(
         "Hash-sum for current directory analizer\n"
         "=======================================\n"
-        //"Special edition for MP ASDC\n"
-        //"\n"
+        "Special edition for MP ASDC\n"
+		"in source code see branch \"kaz\"\n"
+        "\n"
         "Summary hash-sum: %s\n"
         "\n"
         "Press <ENTER> to exit...",
